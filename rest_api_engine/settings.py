@@ -27,6 +27,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
+SITE_URL = 'http://127.0.0.1:8000/'
 
 # Application definition
 
@@ -78,16 +79,16 @@ WSGI_APPLICATION = 'rest_api_engine.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'rest_api_db',
-        'USER' : 'admin',
-        'PASSWORD' : '2128506',
-        'HOST' : '127.0.0.1',
-        'PORT' : '5432',
-    }
-}
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#         'NAME': 'rest_api_db',
+#         'USER' : 'admin',
+#         'PASSWORD' : '2128506',
+#         'HOST' : '127.0.0.1',
+#         'PORT' : '5432',
+#     }
+# }
 
 
 # Password validation
@@ -139,6 +140,9 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAdminUser'
     ),
     'EXCEPTION_HANDLER': 'rest_framework_json_api.exceptions.exception_handler',
     'DEFAULT_PAGINATION_CLASS':

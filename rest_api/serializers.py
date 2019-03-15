@@ -9,4 +9,4 @@ class FilesDataSerializers(serializers.ModelSerializer):
 class FilesDataPostSerializers(serializers.ModelSerializer):
     class Meta:
         model = FilesData
-        fields = ["id","image_path"]
+        fields = ["id", "image_path"]
