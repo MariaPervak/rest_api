@@ -8,8 +8,15 @@ import os
 from os import listdir
 from os.path import isfile, join
 
+from threading import Thread
+from queue import Queue
+
+import requests
+
 from rest_api.models import FilesData
-from rest_api.serializers import FilesDataSerializers, FilesDataPostSerializers
+from rest_api.serializers import FilesDataSerializers
+from .threads import *
+
 
 
 class Files(APIView):
@@ -19,35 +26,41 @@ class Files(APIView):
 
 
     def get(self, request):
+        f=open(r'/home/maria/temp/temp/y_39e94878.jpg',"wb")
+        ufr = requests.get("https://pp.userapi.com/c5571/u28104454/-6/y_39e94878.jpg")
+        f.write(ufr.content)
+        f.close()
+
+
         files = FilesData.objects.all()
         serializer = FilesDataSerializers(files, many=True)
         return Response(serializer.data)
 
+
     def post(self, request):
-        path_to_upload = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/static/to_upload/'
+        request_dict = request.data.dict()
+        print(request_dict['path'])
+        # path_to_upload = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/static/to_upload/'
+        path_to_upload = request_dict['path']
         path_uploaded = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/static/upload/'
 
         files_list = FilesData.objects.values_list('image_path', flat=True)
         files_to_upload = [f for f in listdir(path_to_upload) if isfile(join(path_to_upload, f))]
         new_files = [file for file in files_to_upload if not file in list(files_list)]
 
-        # for i, file in enumerate(new_files):
-        #     interim_file = { 'file' + str(i) : open(path_to_upload + file) }
-
         if not new_files:
             return Response('There is nothing to add')
         else:
-            for i, file in enumerate(new_files):
-                with open(path_to_upload + file, 'rb') as f:
-                    data = f.read()
-                with open(path_uploaded + file, 'wb') as f:
-                    f.write(data)
+            queue = Queue()
+            for i in range(len(new_files)):
+                name = "Поток %s" % (i+1)
+                t = Uploader(queue, name, path_to_upload, path_uploaded)
+                t.setDaemon(True)
+                t.start()
 
-                dfile = FilesDataPostSerializers(data={'image_path' : file})
-                if dfile.is_valid(raise_exception=True):
-                    dfile.save()
-                else:
-                    return Response('Error')
+            for file in new_files:
+                queue.put(file)
+            queue.join()
 
             return Response('The file(s) have been added successfully')
 
@@ -60,3 +73,8 @@ class Files(APIView):
         file = get_object_or_404(FilesData.objects.all(), pk=pk)
         file.delete()
         return Response('The file has been deleted successfully')
+
+class DownloadFile(APIView):
+    permission_classes = [permissions.AllowAny]
+    def get(self, request, pk):
+        return Response('Hey dude')
