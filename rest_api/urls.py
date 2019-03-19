@@ -4,5 +4,4 @@ from rest_api.views import *
 urlpatterns = [
     path('files/', Files.as_view()),
     path('files/<int:pk>', Files.as_view()),
-    path('files/download/', DownloadFile.as_view()),
 ]
